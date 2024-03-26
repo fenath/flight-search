@@ -1,0 +1,4 @@
+resultados*.txt
+__pycache__
+resultados
+chromedriver.exe
