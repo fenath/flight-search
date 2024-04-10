@@ -9,13 +9,13 @@ from selenium import webdriver
 
 FROM       = "CWB"
 TO         = "FOR"
-DATA_IDA   = date(2024, 6, 4)
-DATA_VOLTA = date(2024, 6, 19)
+DATA_IDA   = date(2024, 6, 1)
+DATA_VOLTA = date(2024, 6, 14)
 
 URL = 'https://www.google.com/travel/flights'
 
-WAIT_TIME  = 5
-SHORT_WAIT = 1
+WAIT_TIME  = 3
+SHORT_WAIT = 0.5
 
 IS_RELEASE = True
 
@@ -82,7 +82,7 @@ def scrap_flight(browser, parametros_viagem):
     # Quantidade passageiros
     # lb_qtd_adultos = browser.find_element(By.CSS_SELECTOR, '#i9-1 > div > span.flJ24b.Jj8ghe > span:nth-child(1)')
     # qtd_adultos = lb_qtd_adultos.text
-    sleep(WAIT_TIME)
+    sleep(SHORT_WAIT)
     bt_qtd_passageiros = div_principal.find_element(
         By.TAG_NAME,
         'button'
@@ -110,22 +110,24 @@ def scrap_flight(browser, parametros_viagem):
 
     return valor_viagem
 
-def create_parametros(de, para):
+def create_parametros(de, para, **kwargs):
+    data_ida = kwargs.get('data_ida', DATA_IDA)
+    data_volta = kwargs.get('data_volta', DATA_VOLTA)
     parametros_viagem = {
         'de': de,
         'para': para,
-        'data_ida': date(2024, 6, 1),
-        'data_volta': date(2024, 6, 15),
+        'data_ida': data_ida,
+        'data_volta': data_volta,
         'valor': 0
     }
     return parametros_viagem
 
-def create_parametros_range(de, para, time_range):
+def create_parametros_range(de, para, time_range, **kwargs):
     parametros_viagem = []
     day = datetime.timedelta(days=1)
     for i in range(0, time_range):
         for j in range(0, time_range):
-            parametros = create_parametros(de, para)
+            parametros = create_parametros(de, para, **kwargs)
             parametros['data_ida'] = parametros['data_ida'] + day * i
             parametros['data_volta'] = parametros['data_volta'] + day * (i + j)
             parametros_viagem.append(parametros)
@@ -165,6 +167,18 @@ def main():
 
     lista_viagens = []
 
+    lista_viagens += create_parametros_range('CWB', 'FOR', 5, 
+                                             data_ida=date(2024,7,15), 
+                                             data_volta=date(2024,7,30))
+    lista_viagens += create_parametros_range('CWB', 'FOR', 5, 
+                                             data_ida=date(2024,9,1), 
+                                             data_volta=date(2024,9,15))
+    lista_viagens += create_parametros_range('CWB', 'FOR', 5, 
+                                             data_ida=date(2024,8,1), 
+                                             data_volta=date(2024,8,15))
+    lista_viagens += create_parametros_range('CWB', 'FOR', 5, 
+                                             data_ida=date(2024,7,1), 
+                                             data_volta=date(2024,7,15))
     lista_viagens += create_parametros_range('CWB', 'FOR', 5)
     lista_viagens += create_parametros_range('CWB', 'JDO', 5)
 
@@ -178,6 +192,9 @@ def main():
             print_resultados_pesquisa(par)
         except Exception as e:
             print(f'Erro ao buscar viagem: {e}')
+
+    # remover viagens sem valor
+    lista_viagens = [viagem for viagem in lista_viagens if viagem['valor'] > 0]
 
     lista_viagens.sort(key=lambda x: x['valor'])
     print_tabela_resultados(lista_viagens, 10)
