@@ -14,8 +14,8 @@ DATA_VOLTA = date(2024, 6, 14)
 
 URL = 'https://www.google.com/travel/flights'
 
-WAIT_TIME  = 3
-SHORT_WAIT = 0.5
+WAIT_TIME  = 5
+SHORT_WAIT = 3
 
 IS_RELEASE = True
 
